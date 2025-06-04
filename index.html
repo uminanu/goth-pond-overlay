@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Goth Frog Overlay</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: black;
+    }
+
+    #pond {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      background: url('background.png') no-repeat center center;
+      background-size: cover;
+    }
+
+    .frog-container {
+      position: absolute;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .frog-name {
+      color: white;
+      font-family: monospace;
+      font-size: 20px;
+      text-shadow: 0 0 5px black;
+    }
+
+    .frog-img {
+      width: 100px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="pond"></div>
+
+  <script>
+    function spawnFrog(username) {
+      const pond = document.getElementById('pond');
+
+      const frogContainer = document.createElement('div');
+      frogContainer.className = 'frog-container';
+
+      const pondWidth = pond.clientWidth;
+      const pondHeight = pond.clientHeight;
+
+      const frogWidth = 100;
+      const frogHeight = 100;
+
+      const x = Math.random() * (pondWidth - frogWidth);
+      const y = Math.random() * (pondHeight - frogHeight);
+
+      frogContainer.style.left = `${x}px`;
+      frogContainer.style.top = `${y}px`;
+
+      const name = document.createElement('div');
+      name.className = 'frog-name';
+      name.textContent = username;
+
+      const img = document.createElement('img');
+      img.src = 'skeletonfrog.png';
+      img.className = 'frog-img';
+
+      frogContainer.appendChild(name);
+      frogContainer.appendChild(img);
+      pond.appendChild(frogContainer);
+
+      setTimeout(() => {
+        pond.removeChild(frogContainer);
+      }, 10000);
+    }
+
+    // TEMPORARY TEST KEY (only works in OBS Interact or browser)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'f') {
+        spawnFrog('Timmy');
+      }
+    });
+
+    // WEBSOCKET LISTENER (for real Twitch interaction via Streamer.bot)
+    const socket = new WebSocket('ws://localhost:8080');
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.event === 'spawnFrog') {
+          spawnFrog(data.user || 'Unknown');
+        }
+      } catch (err) {
+        console.error('WebSocket message error:', event.data);
+      }
+    };
+  </script>
+</body>
+</html>
